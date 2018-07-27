@@ -1,4 +1,4 @@
-# Eta Init
+# Eta Haskell server
 
 This is a starter Eta project using Gradle.
 
