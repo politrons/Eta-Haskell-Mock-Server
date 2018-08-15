@@ -12,16 +12,24 @@ eta {
 
 repositories {
     mavenCentral()
+    maven {
+        url "http://repo.akka.io/snapshots/"
+    }
 }
 
 
 dependencies {
-//    compile eta('base:4.10.1.0')
-    compile eta('array:0.5.2.0')
-    compile eta('async:2.1.1.1')
-    compile eta('network:2.6.3.2')
-    compile eta('aeson:1.2.3.0')
-    compile eta('scotty:0.11.0')
+//    compile eta('base:4.8.2.0')
+    compile eta('aeson:1.2.4.0')
+    compile eta('scotty:0.11.1')
+    compile eta('text:1.2.3.0')
+    compile eta('io-streams:1.5.0.1')
+    compile eta('transformers:0.5.2.0')
+    compile eta('bytestring:0.10.8.2')
+    compile eta('network:2.6.3.5')
     compile eta('mysql-haskell:0.8.3.0')
+
+
+
 
 }
