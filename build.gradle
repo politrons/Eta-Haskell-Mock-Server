@@ -6,8 +6,8 @@ plugins {
 }
 
 eta {
-    version = '0.8.0b2'
-    etlasVersion = '1.4.0.0'
+    version = '0.8.6b2'
+    etlasVersion = '1.5.0.0'
 }
 
 repositories {
@@ -19,17 +19,13 @@ repositories {
 
 
 dependencies {
-//    compile eta('base:4.8.2.0')
-    compile eta('aeson:1.2.4.0')
-    compile eta('scotty:0.11.1')
-    compile eta('text:1.2.3.0')
-    compile eta('io-streams:1.5.0.1')
-    compile eta('transformers:0.5.2.0')
-    compile eta('bytestring:0.10.8.2')
-    compile eta('network:2.6.3.5')
-    compile eta('mysql-haskell:0.8.3.0')
-
-
-
-
+    compile eta('base')
+    compile eta('unix')
+    compile eta('scotty:0.9.0')
+    compile eta('file-embed')
+    compile eta('bytestring')
+    compile eta('shakespeare')
+    compile eta('blaze-html')
+    compile eta('text')
+    compile eta('template-haskell')
 }
