@@ -6,7 +6,6 @@ import Data.Monoid ((<>))
 import Data.Aeson (FromJSON, ToJSON, encode,decode)
 import GHC.Generics
 import ModelTypes
---import MySQLConnector
 
 import Data.ByteString.Lazy.Char8 (ByteString)
 import Web.Scotty.Internal.Types (ScottyT, ActionT, Param, RoutePattern, Options, File)

@@ -4,4 +4,4 @@ import ScottyHttpServer
 
 main :: IO ()
 
---main = scottyServer
+main = scottyServer
