@@ -51,7 +51,9 @@ responseUsers = do liftIO $ print ("Request received")
                    users <- liftAndCatchIO $ return $ [(User 1 "Paul")]
                    json (show users)
 
-
+{-| To get a http response we use the function [Web.Scotty.status] passing a [Status] in this example a [status500]
+    Then we use the applicative [>>] which sequentially compose two actions, passing any value produced  by the first
+    as an argument to the second which is the text response.-}
 errorResponse :: ActionM ()
 errorResponse = do liftIO $ print ("Request received")
                    users <- liftAndCatchIO $ return $ [(User 1 "Paul")]
