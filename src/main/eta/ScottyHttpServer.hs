@@ -29,38 +29,25 @@ scottyServer = do
 routes :: ScottyM()
 routes = do get "/service" responseService
             get "/author" responseName
---            get "/users" responseUsers
---            get "/user/id/:id" responseUserById
---            get "/user/name/:name" responseUserByName
---            post "/user/" createUser
---            put "/user/" updateUser
---            delete "/users/:id" deleteById
+            get "/mock/endpoint" responseUsers
+--            post "/mock/endpoint" createUser
+--            put "/mock/endpoint" updateUser
+--            delete "/mock/endpoint:id" deleteById
 
 {-| We use [text] operator from scotty we render the response in text/plain-}
 responseService :: ActionM ()
-responseService = text "First Haskell service 1.0"
+responseService = text "Mock server running over JVM"
 
 responseName :: ActionM ()
 responseName = text "Paul Perez Garcia"
 
---{-| Thanks to Aeson library and encode, we can use [json] operator to allow us to encode object into json
---    [liftAndCatchIO] operator is used to extract from the IO monad the type and add it to ActionM monad.|-}
---responseUsers :: ActionM ()
---responseUsers = do liftIO $ print ("Request received")
---                   users <- liftAndCatchIO $ getAllUsers
---                   json (show users)
---
---responseUserByName :: ActionM ()
---responseUserByName = do name <- param "name"
---                        user <- liftAndCatchIO $ getUserByUserName name
---                        json user
---
---{-| In scotty we have [param] operator which used passing the uri param name we can extract the value. -}
---responseUserById :: ActionM ()
---responseUserById = do id <- param "id"
---                      user <- liftAndCatchIO $ getUserById id
---                      json user
---
+{-| Thanks to Aeson library and encode, we can use [json] operator to allow us to encode object into json
+    [liftAndCatchIO] operator is used to extract from the IO monad the type and add it to ActionM monad.|-}
+responseUsers :: ActionM ()
+responseUsers = do liftIO $ print ("Request received")
+                   users <- liftAndCatchIO $ return $ [(User 1 "Paul")]
+                   json (show users)
+
 --{-| This part of the program is really interested, we are using function where first we need to call insertUser
 --    passing a [User] but we have a [Maybe User] so we use a functor [<*>] to extract the User from the Maybe.
 --     Then we have [sequence] operator which does:
