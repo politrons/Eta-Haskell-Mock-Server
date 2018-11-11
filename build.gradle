@@ -14,6 +14,7 @@ dependencies {
     compile eta('scotty')
     compile eta('warp:3.2.22')
     compile eta('http2:1.6.3')
+    compile eta('http-types')
     compile eta('file-embed')
     compile eta('bytestring')
     compile eta('aeson')

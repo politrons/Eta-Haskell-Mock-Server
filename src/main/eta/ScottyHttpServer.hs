@@ -11,6 +11,7 @@ import Data.ByteString.Lazy.Char8 (ByteString)
 import Web.Scotty.Internal.Types (ScottyT, ActionT, Param, RoutePattern, Options, File)
 import Data.Text.Lazy (Text)
 import Control.Monad.IO.Class (liftIO)
+import Network.HTTP.Types.Status
 
 port = 3000 :: Int
 
@@ -30,6 +31,8 @@ routes :: ScottyM()
 routes = do get "/service" responseService
             get "/author" responseName
             get "/mock/endpoint" responseUsers
+            get "/error" errorResponse
+            get "/errorJson" errorJsonResponse
 --            post "/mock/endpoint" createUser
 --            put "/mock/endpoint" updateUser
 --            delete "/mock/endpoint:id" deleteById
@@ -47,6 +50,17 @@ responseUsers :: ActionM ()
 responseUsers = do liftIO $ print ("Request received")
                    users <- liftAndCatchIO $ return $ [(User 1 "Paul")]
                    json (show users)
+
+
+errorResponse :: ActionM ()
+errorResponse = do liftIO $ print ("Request received")
+                   users <- liftAndCatchIO $ return $ [(User 1 "Paul")]
+                   Web.Scotty.status status500 >> text "Error response"
+
+errorJsonResponse :: ActionM ()
+errorJsonResponse = do liftIO $ print ("Request received")
+                       users <- liftAndCatchIO $ return $ [(User 1 "Paul")]
+                       Web.Scotty.status status401 >> json (show users)
 
 --{-| This part of the program is really interested, we are using function where first we need to call insertUser
 --    passing a [User] but we have a [Maybe User] so we use a functor [<*>] to extract the User from the Maybe.
