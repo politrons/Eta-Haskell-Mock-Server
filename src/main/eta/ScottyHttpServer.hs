@@ -26,17 +26,18 @@ instance FromJSON User
 scottyServer :: IO ()
 scottyServer = do
     print ("Starting Server at port " ++ show port)
-    scotty port routes
+    status <- newIORef 200 -- We create default response status
+    scotty port (routes status)
 
 {-| We define the routes thanks to REST operators [get, post, put, delete, patch] which expect to
     receive a [RoutePattern] as a path and a [ActionM] as the action of the request. Then we return a [ScottyM]-}
-routes :: ScottyM()
-routes = do get "/service" responseService
-            get "/author" responseName
-            get "/mock/endpoint" responseUsers
-            get "/error" errorResponse
-            get "/errorJson" errorJsonResponse
-            get "/setStatus/:id" statusResponse
+routes :: IORef Int -> ScottyM()
+routes status = do get "/service" responseService
+                   get "/author" responseName
+                   get "/mock/endpoint" (responseUsers status)
+                   get "/error" errorResponse
+                   get "/errorJson" errorJsonResponse
+                   get "/setStatus/:id" (statusResponse status)
 --            post "/mock/endpoint" createUser
 --            put "/mock/endpoint" updateUser
 
@@ -49,15 +50,18 @@ responseName = text "Paul Perez Garcia"
 
 {-| Thanks to Aeson library and encode, we can use [json] operator to allow us to encode object into json
     [liftAndCatchIO] operator is used to extract from the IO monad the type and add it to ActionM monad.|-}
-responseUsers :: ActionM ()
-responseUsers = do liftIO $ print ("Request received")
-                   users <- liftAndCatchIO $ return $ [(User 1 "Paul")]
-                   json (show users)
+responseUsers :: IORef Int -> ActionM ()
+responseUsers status = do liftIO $ print ("Request received")
+                          statusCode <- liftAndCatchIO $ readIORef status
+                          users <- liftAndCatchIO $ return $ [(User statusCode "Paul")]
+                          json (show users)
 
-statusResponse :: ActionM ()
-statusResponse = do id <- extractUriParam "id"
-                    users <- liftAndCatchIO $ return $ [(User id "Paul")]
-                    json (show users)
+{-| We change the value of status for the futures request.-}
+statusResponse :: IORef Int -> ActionM ()
+statusResponse status = do uriStatus <- extractUriParam "id"
+                           liftIO (writeIORef status uriStatus)
+                           newStatus <- liftAndCatchIO $ readIORef status
+                           Web.Scotty.status status200 >> text "Status change successfully"
 
 {-| To get a http response we use the function [Web.Scotty.status] passing a [Status] in this example a [status500]
     Then we use the applicative [>>] which sequentially compose two actions, passing any value produced  by the first
