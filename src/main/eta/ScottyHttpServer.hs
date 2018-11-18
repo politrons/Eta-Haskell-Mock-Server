@@ -55,8 +55,8 @@ responseUsers = do liftIO $ print ("Request received")
                    json (show users)
 
 statusResponse :: ActionM ()
-statusResponse = do id <- extractId
-                    users <- liftAndCatchIO $ return $ [(User 1 "Paul")]
+statusResponse = do id <- extractUriParam "id"
+                    users <- liftAndCatchIO $ return $ [(User id "Paul")]
                     json (show users)
 
 {-| To get a http response we use the function [Web.Scotty.status] passing a [Status] in this example a [status500]
@@ -72,8 +72,8 @@ errorJsonResponse = do liftIO $ print ("Request received")
                        users <- liftAndCatchIO $ return $ [(User 1 "Paul")]
                        Web.Scotty.status status401 >> json (show users)
 
-extractId :: ActionM Int
-extractId = Web.Scotty.param "id"
+extractUriParam :: Text -> ActionM Int
+extractUriParam uriParam = Web.Scotty.param uriParam
 
 --{-| This part of the program is really interested, we are using function where first we need to call insertUser
 --    passing a [User] but we have a [Maybe User] so we use a functor [<*>] to extract the User from the Maybe.
