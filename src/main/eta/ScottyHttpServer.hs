@@ -5,13 +5,16 @@ import Web.Scotty
 import Data.Monoid ((<>))
 import Data.Aeson (FromJSON, ToJSON, encode,decode)
 import GHC.Generics
-import ModelTypes
-
 import Data.ByteString.Lazy.Char8 (ByteString)
 import Web.Scotty.Internal.Types (ScottyT, ActionT, Param, RoutePattern, Options, File)
 import Data.Text.Lazy (Text)
+import Control.Concurrent (myThreadId,newEmptyMVar,forkIO,threadDelay,putMVar,takeMVar)
+import Data.IORef (newIORef,IORef,atomicModifyIORef,readIORef,writeIORef)
 import Control.Monad.IO.Class (liftIO)
+import Text.Read (lift)
 import Network.HTTP.Types.Status
+import Data.IORef (newIORef,IORef,atomicModifyIORef,readIORef,writeIORef)
+import ModelTypes
 
 port = 3000 :: Int
 
@@ -33,9 +36,9 @@ routes = do get "/service" responseService
             get "/mock/endpoint" responseUsers
             get "/error" errorResponse
             get "/errorJson" errorJsonResponse
+            get "/setStatus/:id" statusResponse
 --            post "/mock/endpoint" createUser
 --            put "/mock/endpoint" updateUser
---            delete "/mock/endpoint:id" deleteById
 
 {-| We use [text] operator from scotty we render the response in text/plain-}
 responseService :: ActionM ()
@@ -51,6 +54,11 @@ responseUsers = do liftIO $ print ("Request received")
                    users <- liftAndCatchIO $ return $ [(User 1 "Paul")]
                    json (show users)
 
+statusResponse :: ActionM ()
+statusResponse = do id <- extractId
+                    users <- liftAndCatchIO $ return $ [(User 1 "Paul")]
+                    json (show users)
+
 {-| To get a http response we use the function [Web.Scotty.status] passing a [Status] in this example a [status500]
     Then we use the applicative [>>] which sequentially compose two actions, passing any value produced  by the first
     as an argument to the second which is the text response.-}
@@ -63,6 +71,9 @@ errorJsonResponse :: ActionM ()
 errorJsonResponse = do liftIO $ print ("Request received")
                        users <- liftAndCatchIO $ return $ [(User 1 "Paul")]
                        Web.Scotty.status status401 >> json (show users)
+
+extractId :: ActionM Int
+extractId = Web.Scotty.param "id"
 
 --{-| This part of the program is really interested, we are using function where first we need to call insertUser
 --    passing a [User] but we have a [Maybe User] so we use a functor [<*>] to extract the User from the Maybe.
@@ -82,10 +93,7 @@ errorJsonResponse = do liftIO $ print ("Request received")
 --                 status <- liftAndCatchIO $ sequence $ updateUserById <$> maybeUser
 --                 json (show status)
 --
---deleteById :: ActionM ()
---deleteById = do id <- param "id"
---                status <- liftAndCatchIO $ deleteUserById id
---                json (show status)
+
 --
 --{-| In scotty we have [body] operator to get the request body.
 --    We also use [decode] operator to extract and transform from json to Maybe of type we specify in the type signature-}
