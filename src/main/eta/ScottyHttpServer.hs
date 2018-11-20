@@ -33,7 +33,7 @@ scottyServer :: IO ()
 scottyServer = do
     print ("Starting Server at port " ++ show port)
     statusRef <- newIORef 200 -- We create default response status
-    responseBodyRef <- newIORef "{}"
+    responseBodyRef <- newIORef "{}" -- We create default response body
     scotty port (routes statusRef responseBodyRef)
 
 {-| We define the routes thanks to REST operators [get, post, put, delete, patch] which expect to
@@ -41,9 +41,7 @@ scottyServer = do
 routes :: IORef Int -> IORef String -> ScottyM()
 routes statusRef responseBodyRef= do  get "/service" responseService
                                       get "/author" responseName
-                                      get "/mock/endpoint" (responseUsers statusRef responseBodyRef)
-                                      get "/error" errorResponse
-                                      get "/errorJson" errorJsonResponse
+                                      get "/mock/endpoint" (responseMockBody statusRef responseBodyRef)
                                       put "/setStatus/:id" (statusResponse statusRef responseBodyRef)
 
 {-| We use [text] operator from scotty we render the response in text/plain-}
@@ -55,11 +53,11 @@ responseName = text "Paul Perez Garcia"
 
 {-| Thanks to Aeson library and encode, we can use [json] operator to allow us to encode object into json
     [liftAndCatchIO] operator is used to extract from the IO monad the type and add it to ActionM monad.|-}
-responseUsers :: IORef Int -> IORef String -> ActionM ()
-responseUsers statusRef responseBodyRef = do liftIO $ print ("Request received")
-                                             status <- liftAndCatchIO $ readIORef statusRef
-                                             responseBody <- liftAndCatchIO $ readIORef responseBodyRef
-                                             Web.Scotty.status (transformStatusCodeToStatus status) >>  json responseBody
+responseMockBody :: IORef Int -> IORef String -> ActionM ()
+responseMockBody statusRef responseBodyRef = do  liftIO $ print ("Request received")
+                                                 status <- liftAndCatchIO $ readIORef statusRef
+                                                 responseBody <- liftAndCatchIO $ readIORef responseBodyRef
+                                                 Web.Scotty.status (transformStatusCodeToStatus status) >>  json responseBody
 
 {-| We change the value of status for the futures request.-}
 statusResponse :: IORef Int -> IORef String -> ActionM ()
@@ -68,19 +66,6 @@ statusResponse statusRef responseBodyRef = do uriStatus <- extractUriParam "id"
                                               liftIO (writeIORef statusRef uriStatus)
                                               liftIO (writeIORef responseBodyRef requestBody)
                                               Web.Scotty.status status200 >> text "Mock server change successfully"
-
-{-| To get a http response we use the function [Web.Scotty.status] passing a [Status] in this example a [status500]
-    Then we use the applicative [>>] which sequentially compose two actions, passing any value produced  by the first
-    as an argument to the second which is the text response.-}
-errorResponse :: ActionM ()
-errorResponse = do liftIO $ print ("Request received")
-                   users <- liftAndCatchIO $ return $ [(User 1 "Paul")]
-                   Web.Scotty.status status500 >> text "Error response"
-
-errorJsonResponse :: ActionM ()
-errorJsonResponse = do liftIO $ print ("Request received")
-                       users <- liftAndCatchIO $ return $ [(User 1 "Paul")]
-                       Web.Scotty.status status401 >> json (show users)
 
 {-| Function to get uriParams from the uri request-}
 extractUriParam :: Text -> ActionM Int
