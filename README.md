@@ -1,4 +1,4 @@
-# Eta Haskell Mock server
+# Eta Haskell Mock server ![My image](img/0.png) ![My image](img/haskell.png) ![My image](img/jvm.png)
 
 This is a [Eta project](https://eta-lang.org/) using Haskell and Gradle, to build a Mock server to be used during the IT phase for Rest connector calls.
 
