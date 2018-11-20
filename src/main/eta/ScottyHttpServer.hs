@@ -34,15 +34,16 @@ scottyServer = do
     print ("Starting Server at port " ++ show port)
     statusRef <- newIORef 200 -- We create default response status
     responseBodyRef <- newIORef "{}" -- We create default response body
-    scotty port (routes statusRef responseBodyRef)
+    delayRef <- newIORef 0 -- We create default response time
+    scotty port (routes statusRef responseBodyRef delayRef)
 
 {-| We define the routes thanks to REST operators [get, post, put, delete, patch] which expect to
     receive a [RoutePattern] as a path and a [ActionM] as the action of the request. Then we return a [ScottyM]-}
-routes :: IORef Int -> IORef String -> ScottyM()
-routes statusRef responseBodyRef= do  get "/service" responseService
-                                      get "/author" responseName
-                                      get "/mock/endpoint" (responseMockBody statusRef responseBodyRef)
-                                      put "/setStatus/:id" (statusResponse statusRef responseBodyRef)
+routes :: IORef Int -> IORef String -> IORef Int -> ScottyM()
+routes statusRef responseBodyRef delayRef= do  get "/service" responseService
+                                               get "/author" responseName
+                                               get "/mock/endpoint" (responseMockBody statusRef responseBodyRef delayRef)
+                                               put "/setStatus/:id/:delay" (statusResponse statusRef responseBodyRef delayRef)
 
 {-| We use [text] operator from scotty we render the response in text/plain-}
 responseService :: ActionM ()
@@ -53,19 +54,23 @@ responseName = text "Paul Perez Garcia"
 
 {-| Thanks to Aeson library and encode, we can use [json] operator to allow us to encode object into json
     [liftAndCatchIO] operator is used to extract from the IO monad the type and add it to ActionM monad.|-}
-responseMockBody :: IORef Int -> IORef String -> ActionM ()
-responseMockBody statusRef responseBodyRef = do  liftIO $ print ("Request received")
-                                                 status <- liftAndCatchIO $ readIORef statusRef
-                                                 responseBody <- liftAndCatchIO $ readIORef responseBodyRef
-                                                 Web.Scotty.status (transformStatusCodeToStatus status) >>  json responseBody
+responseMockBody :: IORef Int -> IORef String -> IORef Int -> ActionM ()
+responseMockBody statusRef responseBodyRef delayRef= do  liftIO $ print ("Request received")
+                                                         status <- liftAndCatchIO $ readIORef statusRef
+                                                         responseBody <- liftAndCatchIO $ readIORef responseBodyRef
+                                                         delayResponse <- liftAndCatchIO $ readIORef delayRef
+                                                         _ <- liftAndCatchIO $ threadDelay delayResponse
+                                                         Web.Scotty.status (transformStatusCodeToStatus status) >>  json responseBody
 
 {-| We change the value of status for the futures request.-}
-statusResponse :: IORef Int -> IORef String -> ActionM ()
-statusResponse statusRef responseBodyRef = do uriStatus <- extractUriParam "id"
-                                              requestBody <- getBodyParam
-                                              liftIO (writeIORef statusRef uriStatus)
-                                              liftIO (writeIORef responseBodyRef requestBody)
-                                              Web.Scotty.status status200 >> text "Mock server change successfully"
+statusResponse :: IORef Int -> IORef String -> IORef Int ->  ActionM ()
+statusResponse statusRef responseBodyRef delayRef= do uriStatus <- extractUriParam "id"
+                                                      delayResponse <- extractUriParam "delay"
+                                                      requestBody <- getBodyParam
+                                                      liftIO (writeIORef statusRef uriStatus)
+                                                      liftIO (writeIORef responseBodyRef requestBody)
+                                                      liftIO (writeIORef delayRef (delayResponse * 1000)) -- ThreadDelay works in nano seconds
+                                                      Web.Scotty.status status200 >> text "Mock server change successfully"
 
 {-| Function to get uriParams from the uri request-}
 extractUriParam :: Text -> ActionM Int
