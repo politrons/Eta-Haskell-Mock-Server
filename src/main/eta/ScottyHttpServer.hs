@@ -43,7 +43,7 @@ routes :: IORef Int -> IORef String -> IORef Int -> ScottyM()
 routes statusRef responseBodyRef delayRef= do  get "/service" responseService
                                                get "/author" responseName
                                                get "/mock/endpoint" (responseMockBody statusRef responseBodyRef delayRef)
-                                               put "/setStatus/:id/:delay" (statusResponse statusRef responseBodyRef delayRef)
+                                               put "/setResponse/status/:id/delay/:delay" (statusResponse statusRef responseBodyRef delayRef)
 
 {-| We use [text] operator from scotty we render the response in text/plain-}
 responseService :: ActionM ()
