@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-} -- Mandatory language overload to overload String
 {-# LANGUAGE DeriveGeneric #-}
-module ScottyHttpServer where
+module MockServer where
 
 import Web.Scotty
 import Data.Monoid ((<>))
@@ -20,13 +20,6 @@ import Data.ByteString.Lazy.Char8 (unpack)
 import Data.ByteString.Lazy.Char8 (ByteString)
 
 port = 3000 :: Int
-
-{-| Thanks to type class we define that any [MyBody] is JSON serializable/deserializable.|-}
---data MyBody = MyBody String | NothingFound deriving (Show, Generic)
---
---instance FromJSON MyBody
---instance ToJSON MyBody
-
 
 {-| Using [scotty] passing [port] and [routes] we define the http server-}
 scottyServer :: IO ()
@@ -55,7 +48,7 @@ responseName = text "Paul Perez Garcia"
 {-| Thanks to Aeson library and encode, we can use [json] operator to allow us to encode object into json
     [liftAndCatchIO] operator is used to extract from the IO monad the type and add it to ActionM monad.|-}
 responseMockBody :: IORef Int -> IORef String -> IORef Int -> ActionM ()
-responseMockBody statusRef responseBodyRef delayRef= do  liftIO $ print ("Request received")
+responseMockBody statusRef responseBodyRef delayRef= do  liftIO $ print ("Request to be mocked received")
                                                          status <- liftAndCatchIO $ readIORef statusRef
                                                          responseBody <- liftAndCatchIO $ readIORef responseBodyRef
                                                          delayResponse <- liftAndCatchIO $ readIORef delayRef
@@ -64,7 +57,8 @@ responseMockBody statusRef responseBodyRef delayRef= do  liftIO $ print ("Reques
 
 {-| We change the value of status for the futures request.-}
 statusResponse :: IORef Int -> IORef String -> IORef Int ->  ActionM ()
-statusResponse statusRef responseBodyRef delayRef= do uriStatus <- extractUriParam "id"
+statusResponse statusRef responseBodyRef delayRef= do liftIO $ print ("Request to be change mock response received")
+                                                      uriStatus <- extractUriParam "id"
                                                       delayResponse <- extractUriParam "delay"
                                                       requestBody <- getBodyParam
                                                       liftIO (writeIORef statusRef uriStatus)

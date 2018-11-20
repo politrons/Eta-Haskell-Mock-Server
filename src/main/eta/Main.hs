@@ -1,6 +1,6 @@
 module Main where
 
-import ScottyHttpServer
+import MockServer
 
 main :: IO ()
 
