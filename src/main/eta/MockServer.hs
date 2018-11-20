@@ -98,4 +98,3 @@ transformStatusCodeToStatus status =  case status of
                                        502 -> status502
                                        503 -> status503
                                        _ -> status511
-
