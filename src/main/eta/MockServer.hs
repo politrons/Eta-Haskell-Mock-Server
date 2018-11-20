@@ -99,9 +99,3 @@ transformStatusCodeToStatus status =  case status of
                                        503 -> status503
                                        _ -> status511
 
---getBodyParam :: ActionT Text IO String
---getBodyParam = do j <- jsonData
---                  text <- case j of
---                    MyBody str -> return str
---                    NothingFound -> return "{Nothing}"
---                  return (show text)
