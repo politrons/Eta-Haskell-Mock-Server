@@ -25,14 +25,13 @@ The mock server has two endpoints for now, one to set the mock response, and ano
 The first uri param is the http response status(404), and the second the delay time(1000)
 
 
-POST:
+**POST:**
 ```
     http://localhost:3000/setResponse/status/404/delay/1000
 ```
 
 
-Body:
-
+**Body:**
 ```
     {
         "response":"custom_response"
@@ -43,7 +42,7 @@ Body:
 
 The invocation  of this call it will receive the **response body** with a **delay** and **http status code** previously set
 
-GET:
+**GET:**
 ```
     http://localhost:3000/mock/endpoint
 ```
