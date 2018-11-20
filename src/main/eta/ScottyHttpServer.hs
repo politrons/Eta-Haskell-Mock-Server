@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-} -- Mandatory language overload to overload String
+{-# LANGUAGE DeriveGeneric #-}
 module ScottyHttpServer where
 
 import Web.Scotty
@@ -20,9 +21,12 @@ import Data.ByteString.Lazy.Char8 (ByteString)
 
 port = 3000 :: Int
 
-{-| Thanks to type class we define that any [User] is JSON serializable/deserializable.|-}
---instance ToJSON String
---instance FromJSON String
+{-| Thanks to type class we define that any [MyBody] is JSON serializable/deserializable.|-}
+--data MyBody = MyBody String | NothingFound deriving (Show, Generic)
+--
+--instance FromJSON MyBody
+--instance ToJSON MyBody
+
 
 {-| Using [scotty] passing [port] and [routes] we define the http server-}
 scottyServer :: IO ()
@@ -55,8 +59,7 @@ responseUsers :: IORef Int -> IORef String -> ActionM ()
 responseUsers statusRef responseBodyRef = do liftIO $ print ("Request received")
                                              status <- liftAndCatchIO $ readIORef statusRef
                                              responseBody <- liftAndCatchIO $ readIORef responseBodyRef
-                                             users <- liftAndCatchIO $ return $ [(User status  responseBody)]
-                                             json (show users)
+                                             Web.Scotty.status (transformStatusCodeToStatus status) >>  json responseBody
 
 {-| We change the value of status for the futures request.-}
 statusResponse :: IORef Int -> IORef String -> ActionM ()
@@ -90,5 +93,31 @@ getBodyParam = do requestBody <- body
                   body <- (liftAndCatchIO $ return requestBody)
                   return $ unpack body
 
+{-| Function to retrieve an Int as http status code and we transform into Scotty [statusXXX]-}
+transformStatusCodeToStatus::Int -> Status
+transformStatusCodeToStatus status =  case status of
+                                       100 -> status100
+                                       101 -> status101
+                                       200 -> status200
+                                       201 -> status201
+                                       202 -> status202
+                                       300 -> status300
+                                       301 -> status301
+                                       302 -> status302
+                                       400 -> status400
+                                       401 -> status401
+                                       402 -> status402
+                                       403 -> status403
+                                       404 -> status404
+                                       500 -> status500
+                                       501 -> status501
+                                       502 -> status502
+                                       503 -> status503
+                                       _ -> status511
 
-
+--getBodyParam :: ActionT Text IO String
+--getBodyParam = do j <- jsonData
+--                  text <- case j of
+--                    MyBody str -> return str
+--                    NothingFound -> return "{Nothing}"
+--                  return (show text)
